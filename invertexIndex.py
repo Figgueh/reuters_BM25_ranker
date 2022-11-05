@@ -45,6 +45,25 @@ class InvertedIndex:
                         self.inverted_index[word] = [newid]
 
 
+    def get_doc_freq(self, token, articleid):
+        # Returns the number of times that token appears in the specified article.
+
+        frequency = 0
+        for tokens, newids in self.inverted_index.items():
+            if token == tokens:
+                for newid in newids:
+                    if newid == articleid:
+                        frequency += 1
+        return frequency
+
+    def get_doc_length(self, articleid):
+        length = 0
+        for tokens, newids in self.inverted_index.items():
+            for newid in newids:
+                if newid == articleid:
+                    length += 1
+
+        return length
 
 
 

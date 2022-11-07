@@ -41,7 +41,7 @@ def sub1_partA():
     pipeline.save_index("first10K/naive_index", inverted_index_naive.inverted_index)
 
 
-def sub1_partB(verbose=False):
+def sub1_partB():
     print("Start of subproject 1 part B:")
 
     # Prepare the pipeline to get all the documents in the reuters corpus

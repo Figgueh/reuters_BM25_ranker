@@ -1,29 +1,29 @@
 import time
-
 import globals
-from pipleline import Pipeline
+import pipeline
+from pipeline import Pipeline
 from postingList import PostingsList
 from invertexIndex import InvertedIndex
 
 from BM25 import BM25
 
 # Extracted text will be use for both version of the indexers
-# Some preprocessing TODO:: FILL
 text_extractor = Pipeline()
+
+# Preprocess the text in our pipeline to first produce a postings list
+# consisting of the first 10k pairs, Then reconstructs the data to form
+# a sub-corpus that will be used by both indexing methods to ensure that
+# the work done by both methods is fair.
 first_10k = text_extractor.extract_first_10k(text_extractor.text)
 text_extractor.change_pipe(first_10k)
 
-
-def sub1_partA(verbose=False):
+def sub1_partA():
     # Start of the SPIMI indexer
     start_time = time.time()
-    inverted_index_SPIMI = InvertedIndex(pipeline=text_extractor, compression=True)
+    inverted_index_SPIMI = InvertedIndex(pipeline=text_extractor, is_compressed=True)
     end_time = time.time()
 
-    if verbose:
-        print(inverted_index_SPIMI.inverted_index)
     print("It took ", (end_time - start_time), " to generate the first 10000 token pairs with the SPIMI indexer")
-
 
     # Start of the naive indexer
     naive_start_time = time.time()
@@ -31,89 +31,77 @@ def sub1_partA(verbose=False):
     inverted_index_naive = InvertedIndex(posting_list=posting)
     naive_end_time = time.time()
 
-    if verbose:
-        print(inverted_index_naive.inverted_index)
-    print("It took ", (naive_end_time - naive_start_time), " to generate the first 10000 token pairs with the naive indexer")
+    print("It took ", (naive_end_time - naive_start_time),
+          " to generate the first 10000 token pairs with the naive indexer")
 
-    return inverted_index_naive
+    # Save results to a file
+    print("Currently saving the results for the first 10K... \n\n")
+    pipeline.save_index("first10K/SPIMI_index", inverted_index_SPIMI.inverted_index)
+    pipeline.save_index("first10K/naive_postings", posting.postings)
+    pipeline.save_index("first10K/naive_index", inverted_index_naive.inverted_index)
+
 
 def sub1_partB(verbose=False):
+    print("Start of subproject 1 part B:")
+
+    # Prepare the pipeline to get all the documents in the reuters corpus
     globals.file_pattern = r'reut2-0[0-9][0-9].sgm'
     text_extractor.change_pipe(text_extractor.extract_text())
 
+    # Generate a new index without any compression
     fullcorpus_start_time = time.time()
-    inverted_index = InvertedIndex(pipeline=text_extractor, compression=False, track_frequency=False)
+    uncompressed_index = InvertedIndex(pipeline=text_extractor, is_compressed=False, track_frequency=False)
     fullcorpus_end_time = time.time()
 
-    if verbose:
-        print(inverted_index.inverted_index)
-    print("It took ", (fullcorpus_end_time - fullcorpus_start_time), " to generate the invertex index with the SPIMI indexer")
+    print("It took", (fullcorpus_end_time - fullcorpus_start_time),
+          "to generate the uncompressed index with the SPIMI indexer")
 
-    return inverted_index
+    print("Currently saving the results for the uncompressed index... \n\n")
+    pipeline.save_index("uncompressed/SPIMI_index", uncompressed_index.inverted_index)
 
-# with_compression = sub1_partA()
-# without_compression = sub1_partB()
 
-#subproject2
+# Execute subproject 1
+sub1_partA()
+sub1_partB()
+
+
 def subproject2():
-    globals.file_pattern = r'reut2-0[0-9][0-9].sgm'
-    text_extractor.change_pipe(text_extractor.extract_text())
-    # without_compression = InvertedIndex(pipeline=text_extractor, compression=False, track_frequency=True)
-    with_compression = InvertedIndex(pipeline=text_extractor, compression=True, track_frequency=True)
+    compression_level = "heavy"
+    # compression_level = True
 
-    # scorer = BM25(without_compression)
-    scorer = BM25(with_compression)
+    indexers = {
+        "with compression": InvertedIndex(pipeline=text_extractor, is_compressed=compression_level, track_frequency=True),
+        "without compression": InvertedIndex(pipeline=text_extractor, is_compressed=False, track_frequency=True)
+    }
+    queries = [
+        # "Democrats' welfare and healthcare reform policies",
+        # "Drug company bankruptcies",
+        # "George Bush",
+        # "alleviating drought",
+        "president Lincon",
+        # "Inc said they plan to form a venture to manage the money market"
+    ]
+    bool_methods = ["and", "or"]
 
-    # print(scorer.get_termdoc_freq("to", 1))
-    # print(scorer.get_doc_length(1))
-    # print(scorer.get_ave_length(1))
-    # print("doc freq:", scorer.get_document_frequency("Comissaria"))
-
-    # print(scorer.generate_BM25_value("Comissaria", 1))
-    # print(scorer.generate_BM25_value("and", 1))
-
-    # print(without_compression.single_term_lookup("and"))
-    # print(without_compression.single_term_lookup("or"))
-    # tokens = ["and", "or"]
-    # print(without_compression.multiple_term_lookup(tokens, method="and"), "\n")
-
-    # start_time = time.time()
-    # print("Generating BM25 for each article...")
-    # scorer.fit()
-    # end_time = time.time()
-    # print("It took ", (end_time - start_time), " to generate the BM25 rank for all the articles.")
-
-    # print(scorer.scores)
-
-    # print(scorer.get_doc_score())
-    # print()
+    for method, indexer in indexers.items():
+        print(f'Currently ranking results {method}... ')
+        scorer = BM25(indexer)
 
 
-    def query_lookup():
-        # CHANGE AFTER
-        SPIMI_indexer = with_compression
-        indexer = SPIMI_indexer
-        queries = [
-            # "Democrats' welfare and healthcare reform policies",
-            # "Drug company bankruptcies",
-            # "George Bush",
-            "alleviating drought",
-            # "president Lincon",
-            # "Inc said they plan to form a venture to manage the money market"
-        ]
-
-        # print(scorer.predict(["yellow", "car"]))
-
-        # unranked boolean retrieval
+        # Start of ranked retrial
+        print("Currently calculating rank of queries...")
         for query in queries:
-            score = scorer.predict(query)
-            # print(f'"{query}" documents where all keywords are found: {indexer.multiple_term_lookup(query.split(" "), "and")}')
-            # print(f'"{query}" documents where at least one keyword is found: {indexer.multiple_term_lookup(query.split(" "), "or")}')
-            print(f'"{query}" returns a BM25 value of: {score}')
+            result = scorer.predict(query)
+            print(f'Saved ranked results for query "{query}"')
+            pipeline.save_query_results(method, "ranked", query, result)
+        print("\n")
 
-    query_lookup()
-
-
+        # Start of boolean retrial
+        print("Currently generating unranked boolean retrieval of queries...")
+        for query in queries:
+            for bool_operation in bool_methods:
+                result = indexer.multiple_term_lookup(query, bool_operation)
+                pipeline.save_query_results(method, bool_operation, query, result)
 
 
 subproject2()

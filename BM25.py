@@ -1,9 +1,5 @@
 import math
-import time
-
-from itertools import groupby
-
-from nltk import word_tokenize
+import compression
 
 
 class BM25:
@@ -11,17 +7,16 @@ class BM25:
     def __init__(self, inverted_index):
         self.inverted_index = inverted_index
         self.scores = {}
-        self.idf_values = {}
-        self.build_idf_table()
-
-        print("Currently getting total document length...")
+        self.idf_values = self.build_idf_table()
         self.total_length = self.get_total_length()
 
     def build_idf_table(self):
+        idf_values = {}
         for token in self.inverted_index.inverted_index:
             N = self.inverted_index.articles_processed
             dft = len(set(self.inverted_index.inverted_index[token]))
-            self.idf_values[token] = math.log(N/dft, 10)
+            idf_values[token] = math.log(N/dft, 10)
+        return idf_values
 
     def get_termdoc_freq(self, token, articleid):
         # Returns the number of times that token appears in the specified article.
@@ -45,8 +40,8 @@ class BM25:
 
     def get_ave_length(self, articleid):
         # Returns the average length for that article
-        return self.total_length / self.get_doc_length(articleid)
-        # return self.total_length / len(self.inverted_index.article_length)
+        # return self.total_length / self.get_doc_length(articleid)
+        return self.total_length / len(self.inverted_index.article_length)
 
     # def get_idft_val(self, token, articleid):
     #     return math.log(self.articles_processed/self.get_doc_freq(token, articleid), 10)
@@ -82,29 +77,17 @@ class BM25:
 
         return first_part * second_part
 
-    # def get_doc_score(self):
-    #     doc_score = {}
-    #     for tokens, articleids in self.inverted_index.inverted_index.items():
-    #         for articleid in articleids:
-    #             score = self.generate_BM25_value(tokens, articleid)
-    #             articleid = str(articleid)
-    #             if articleid in doc_score:
-    #                 doc_score[articleid] += score
-    #             else:
-    #                 doc_score[articleid] = score
-    #     return doc_score
-
-    # def fit(self):
-    #     for token, articleids in self.inverted_index.inverted_index.items():
-    #         for article in articleids:
-    #             if article in self.scores:
-    #                 self.scores[article] += self.generate_BM25_value(token, article)
-    #             else:
-    #                 self.scores[article] = self.generate_BM25_value(token, article)
-
     def predict(self, tokens):
         result = {}
-        tokens = word_tokenize(tokens)
+
+        if self.inverted_index.is_compressed:
+            if self.inverted_index.is_compressed == "heavy":
+                tokens = compression.heavy_compress(tokens)
+            else:
+                tokens = compression.compress(tokens)
+        else:
+            tokens = tokens.split(" ")
+
         for token in tokens:
             if token in self.inverted_index.inverted_index:
                 for articleid in self.inverted_index.inverted_index[token]:

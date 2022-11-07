@@ -1,3 +1,4 @@
+import json
 import string
 
 from nltk import word_tokenize
@@ -8,13 +9,13 @@ from nltk.corpus import PlaintextCorpusReader
 class Pipeline:
 
     def __init__(self):
-        print("Fetching text...")
         self.text = self.extract_text()
 
     def change_pipe(self, text):
         self.text = text
 
     def extract_text(self):
+        print("Fetching text...")
         def remove_formatting_error(word):
             new_str = ""
             in_tag = False
@@ -97,6 +98,7 @@ class Pipeline:
         f.close()
 
     def extract_first_10k(self, text):
+            print("Constructing sub-corpus with the first 10K pairs...")
             # The idea for this function is to create a postings list before hand, then
             # create a subcorpus containg x amount of tokens, so that we can then
             # pass this subcorpus to the functions responsible for creating the lists
@@ -134,5 +136,23 @@ class Pipeline:
                     # If we reached the end of the article then we include it in the new corpus
                     new_corpus += rebuild_article
 
+
+def save_index(method, index):
+    file_path = "indexers/" + method + ".txt"
+    f = open(file_path, "w")
+    f.write(json.dumps(index, indent=1))
+    f.close()
+
+
+def save_query_results(method, type, query, result):
+    file_path = "queries/" + method.replace(" ", "_") + "/" + type + "/" + "/" + query.replace(" ", "_") + ".txt"
+    f = open(file_path, "w")
+
+    if type == "and" or type == "or":
+        f.write(json.dumps(result))
+    else:
+        f.write(json.dumps(result, indent=1))
+
+    f.close()
 
 

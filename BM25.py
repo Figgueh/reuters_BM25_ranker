@@ -3,6 +3,8 @@ import time
 
 from itertools import groupby
 
+from nltk import word_tokenize
+
 
 class BM25:
 
@@ -44,6 +46,7 @@ class BM25:
     def get_ave_length(self, articleid):
         # Returns the average length for that article
         return self.total_length / self.get_doc_length(articleid)
+        # return self.total_length / len(self.inverted_index.article_length)
 
     # def get_idft_val(self, token, articleid):
     #     return math.log(self.articles_processed/self.get_doc_freq(token, articleid), 10)
@@ -52,40 +55,25 @@ class BM25:
         if token in self.inverted_index.inverted_index:
             return len(set(self.inverted_index.inverted_index[token]))
 
+
+
     def generate_BM25_value(self, token, articleid):
         k1 = 1.2
         b = 1
 
-        # start_time = time.time()
-        # N = self.inverted_index.articles_processed
-        # end_time = time.time()
-        # print("It took ", (end_time - start_time), " to generate N.")
-
-        # start_time = time.time()
-        # dft = self.get_document_frequency(token)
-        # end_time = time.time()
-        # print("It took ", (end_time - start_time), " to generate dft.")
-
-        # start_time = time.time()
         tftd = self.get_termdoc_freq(token, articleid)
-        # end_time = time.time()
-        # print("It took ", (end_time - start_time), " to generate tftd.")
+        # tftd = self.inverted_index.term_frequency[(token, articleid)]
 
-        # start_time = time.time()
         ld = self.get_doc_length(articleid)
-        # end_time = time.time()
-        # print("It took ", (end_time - start_time), " to generate ld.")
 
-        # start_time = time.time()
         lave = self.get_ave_length(articleid)
-        # end_time = time.time()
-        # print("It took ", (end_time - start_time), " to generate lave.")
 
-        # exit()
-
-        first_part = self.idf_values[token]
+        if token in self.idf_values:
+            first_part = self.idf_values[token]
+        else:
+            first_part = 0
         numerator = (k1 + 1) * tftd
-        denominator = k1*((1 - b) + (b * (ld / lave))) + tftd
+        denominator = (k1*((1 - b) + b * (ld / lave)) + tftd)
 
         if denominator == 0:
             return 0
@@ -94,23 +82,32 @@ class BM25:
 
         return first_part * second_part
 
-    def get_doc_score(self):
-        doc_score = {}
-        for tokens, articleids in self.inverted_index.inverted_index.items():
-            for articleid in articleids:
-                score = self.generate_BM25_value(tokens, articleid)
-                articleid = str(articleid)
-                if articleid in doc_score:
-                    doc_score[articleid] += score
-                else:
-                    doc_score[articleid] = score
-        return doc_score
+    # def get_doc_score(self):
+    #     doc_score = {}
+    #     for tokens, articleids in self.inverted_index.inverted_index.items():
+    #         for articleid in articleids:
+    #             score = self.generate_BM25_value(tokens, articleid)
+    #             articleid = str(articleid)
+    #             if articleid in doc_score:
+    #                 doc_score[articleid] += score
+    #             else:
+    #                 doc_score[articleid] = score
+    #     return doc_score
 
-    def search(self, query):
-        scores = [self.scores(query, index) for index in range(self.inverted_index.articles_processed)]
-        return scores
+    # def fit(self):
+    #     for token, articleids in self.inverted_index.inverted_index.items():
+    #         for article in articleids:
+    #             if article in self.scores:
+    #                 self.scores[article] += self.generate_BM25_value(token, article)
+    #             else:
+    #                 self.scores[article] = self.generate_BM25_value(token, article)
 
-    def fit(self):
-        for token, articleids in self.inverted_index.inverted_index.items():
-            for article in articleids:
-                self.scores[article] = self.generate_BM25_value(token, article)
+    def predict(self, tokens):
+        result = {}
+        tokens = word_tokenize(tokens)
+        for token in tokens:
+            if token in self.inverted_index.inverted_index:
+                for articleid in self.inverted_index.inverted_index[token]:
+                    result[articleid] = self.generate_BM25_value(token, articleid)
+
+        return sorted(result.items(), key=lambda rank:rank[1], reverse=True)

@@ -58,50 +58,60 @@ def sub1_partB(verbose=False):
 def subproject2():
     globals.file_pattern = r'reut2-0[0-9][0-9].sgm'
     text_extractor.change_pipe(text_extractor.extract_text())
-    without_compression = InvertedIndex(pipeline=text_extractor, compression=False, track_frequency=True)
-    scorer = BM25(without_compression)
+    # without_compression = InvertedIndex(pipeline=text_extractor, compression=False, track_frequency=True)
+    with_compression = InvertedIndex(pipeline=text_extractor, compression=True, track_frequency=True)
 
-    print(scorer.get_termdoc_freq("to", 1))
-    print(scorer.get_doc_length(1))
-    print(scorer.get_ave_length(1))
-    print("doc freq:", scorer.get_document_frequency("Comissaria"))
+    # scorer = BM25(without_compression)
+    scorer = BM25(with_compression)
 
-    print(scorer.generate_BM25_value("Comissaria", 1))
-    print(scorer.generate_BM25_value("and", 1))
+    # print(scorer.get_termdoc_freq("to", 1))
+    # print(scorer.get_doc_length(1))
+    # print(scorer.get_ave_length(1))
+    # print("doc freq:", scorer.get_document_frequency("Comissaria"))
 
-    print(without_compression.single_term_lookup("and"))
-    print(without_compression.single_term_lookup("or"))
-    tokens = ["and", "or"]
+    # print(scorer.generate_BM25_value("Comissaria", 1))
+    # print(scorer.generate_BM25_value("and", 1))
+
+    # print(without_compression.single_term_lookup("and"))
+    # print(without_compression.single_term_lookup("or"))
+    # tokens = ["and", "or"]
     # print(without_compression.multiple_term_lookup(tokens, method="and"), "\n")
 
-    start_time = time.time()
-    print("Generating BM25 for each article...")
-    scorer.fit()
-    end_time = time.time()
-    print("It took ", (end_time - start_time), " to generate the BM25 rank for all the articles.")
+    # start_time = time.time()
+    # print("Generating BM25 for each article...")
+    # scorer.fit()
+    # end_time = time.time()
+    # print("It took ", (end_time - start_time), " to generate the BM25 rank for all the articles.")
 
+    # print(scorer.scores)
 
-    print(scorer.get_doc_score())
+    # print(scorer.get_doc_score())
+    # print()
 
 
     def query_lookup():
         # CHANGE AFTER
-        SPIMI_indexer = without_compression
+        SPIMI_indexer = with_compression
         indexer = SPIMI_indexer
         queries = [
-            "Democrats' welfare and healthcare reform policies",
-            "Drug company bankruptcies",
-            "George Bush",
-            "alleviating the drought since"
+            # "Democrats' welfare and healthcare reform policies",
+            # "Drug company bankruptcies",
+            # "George Bush",
+            "alleviating drought",
+            # "president Lincon",
+            # "Inc said they plan to form a venture to manage the money market"
         ]
+
+        # print(scorer.predict(["yellow", "car"]))
 
         # unranked boolean retrieval
         for query in queries:
-            print(f'"{query}" documents where all keywords are found: {indexer.multiple_term_lookup(query.split(" "), "and")}')
-            print(f'"{query}" documents where at least one keyword is found: {indexer.multiple_term_lookup(query.split(" "), "or")} \n')
+            score = scorer.predict(query)
+            # print(f'"{query}" documents where all keywords are found: {indexer.multiple_term_lookup(query.split(" "), "and")}')
+            # print(f'"{query}" documents where at least one keyword is found: {indexer.multiple_term_lookup(query.split(" "), "or")}')
+            print(f'"{query}" returns a BM25 value of: {score}')
 
-
-    # query_lookup()
+    query_lookup()
 
 
 

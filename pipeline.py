@@ -89,11 +89,6 @@ class Pipeline:
 
         return clean_corpus
 
-    def save_subcorpus(self, text):
-        f = open("subcorpus.txt", "w")
-        f.write(text)
-        f.close()
-
     def extract_first_10k(self, text):
             print("Constructing sub-corpus with the first 10K pairs...")
             # The idea for this function is to create a postings list before hand, then
@@ -132,6 +127,11 @@ class Pipeline:
 
                     # If we reached the end of the article then we include it in the new corpus
                     new_corpus += rebuild_article
+
+    def save_subcorpus(self, text):
+        f = open("corpus/subcorpus.txt", "w")
+        f.write(text)
+        f.close()
 
 
 def save_index(method, index):

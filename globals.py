@@ -1,4 +1,4 @@
-corpus_root = r'reuters21578'
+corpus_root = r'corpus/reuters21578'
 file_pattern = r'reut2-000.sgm'
 
 stopword30 = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "page", "you've", "you'll",

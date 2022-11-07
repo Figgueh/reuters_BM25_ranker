@@ -43,30 +43,22 @@ class BM25:
         # return self.total_length / self.get_doc_length(articleid)
         return self.total_length / len(self.inverted_index.article_length)
 
-    # def get_idft_val(self, token, articleid):
-    #     return math.log(self.articles_processed/self.get_doc_freq(token, articleid), 10)
-
     def get_document_frequency(self, token):
         if token in self.inverted_index.inverted_index:
             return len(set(self.inverted_index.inverted_index[token]))
 
-
-
     def generate_BM25_value(self, token, articleid):
         k1 = 1.2
         b = 1
-
         tftd = self.get_termdoc_freq(token, articleid)
-        # tftd = self.inverted_index.term_frequency[(token, articleid)]
-
         ld = self.get_doc_length(articleid)
-
         lave = self.get_ave_length(articleid)
 
         if token in self.idf_values:
             first_part = self.idf_values[token]
         else:
             first_part = 0
+
         numerator = (k1 + 1) * tftd
         denominator = (k1*((1 - b) + b * (ld / lave)) + tftd)
 
@@ -74,7 +66,6 @@ class BM25:
             return 0
 
         second_part = numerator/denominator
-
         return first_part * second_part
 
     def predict(self, tokens):

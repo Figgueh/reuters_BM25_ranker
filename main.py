@@ -66,6 +66,15 @@ sub1_partB()
 
 
 def subproject2():
+    # These two lines must be uncommented if subproject 1 is prevented from executing.
+    # They are responsible for changing what will be processed.
+    # globals.file_pattern = r'reut2-0[0-9][0-9].sgm'
+    # text_extractor.change_pipe(text_extractor.extract_text())
+
+    # Since this assignment asks for only punctuation to be removed, I've included 3 different levels of compression
+    # Setting compression level to "heavy" remove 150 stopwords, lower cases and tokenizes all words
+    # Setting compression level to true just removes any punctuation
+    # Setting compression level to false doesn't preprocess the document at all.
     compression_level = "heavy"
     # compression_level = True
 
@@ -74,12 +83,12 @@ def subproject2():
         "without compression": InvertedIndex(pipeline=text_extractor, is_compressed=False, track_frequency=True)
     }
     queries = [
-        # "Democrats' welfare and healthcare reform policies",
-        # "Drug company bankruptcies",
-        # "George Bush",
-        # "alleviating drought",
+        "Democrats' welfare and healthcare reform policies",
+        "Drug company bankruptcies",
+        "George Bush",
+        "alleviating drought",
         "president Lincon",
-        # "Inc said they plan to form a venture to manage the money market"
+        "Inc said they plan to form a venture to manage the money market"
     ]
     bool_methods = ["and", "or"]
 
@@ -104,4 +113,5 @@ def subproject2():
                 pipeline.save_query_results(method, bool_operation, query, result)
 
 
+# Execution of subproject 2
 subproject2()

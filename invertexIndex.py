@@ -1,10 +1,5 @@
-
-import string
 import collections
 import compression
-from itertools import groupby
-
-from nltk import word_tokenize
 
 class InvertedIndex:
     def __init__(self, posting_list=None, pipeline=None, is_compressed=False, track_frequency=False):

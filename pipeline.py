@@ -1,10 +1,7 @@
 import json
-import string
-
-from nltk import word_tokenize
-
 import globals
 from nltk.corpus import PlaintextCorpusReader
+
 
 class Pipeline:
 

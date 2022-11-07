@@ -1,7 +1,5 @@
-
 corpus_root = r'reuters21578'
 file_pattern = r'reut2-000.sgm'
-limit = 10000
 
 stopword30 = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "page", "you've", "you'll",
               "get", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's",

@@ -75,8 +75,8 @@ def subproject2():
     # Setting compression level to "heavy" remove 150 stopwords, lower cases and tokenizes all words
     # Setting compression level to true just removes any punctuation
     # Setting compression level to false doesn't preprocess the document at all.
-    compression_level = "heavy"
-    # compression_level = True
+    # compression_level = "heavy"
+    compression_level = True
 
     indexers = {
         "with compression": InvertedIndex(pipeline=text_extractor, is_compressed=compression_level, track_frequency=True),
@@ -88,7 +88,8 @@ def subproject2():
         "George Bush",
         "alleviating drought",
         "president Lincon",
-        "Inc said they plan to form a venture to manage the money market"
+        "Inc said they plan to form a venture to manage the money market",
+        "Yellow"
     ]
     bool_methods = ["and", "or"]
 

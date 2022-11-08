@@ -53,11 +53,6 @@ class InvertedIndex:
                     else:
                         words = compression.compress(article_text)
 
-                    # Remove any punctuation
-                    # translator = str.maketrans(dict.fromkeys(string.punctuation))
-                    # article_text = article_text.translate(translator)
-                    # words = word_tokenize(article_text)
-
                 if track_frequency:
                     # Update the length of that article
                     self.article_length[newid] = len(words)
